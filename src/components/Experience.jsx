@@ -10,12 +10,13 @@ const NavBridge = () => {
 
     useEffect(() => {
         window.scrollToSection = (sectionId) => {
+            const isMobile = window.innerWidth < 768;
             const offsets = {
                 'home': 0,
-                'about': 0.17,    // ~1/6
-                'skills': 0.33,   // ~2/6
-                'projects': 0.50, // ~3/6
-                'contact': 0.83   // ~5/6 - Pushed down for better visibility
+                'about': 0.12,
+                'skills': 0.24,
+                'projects': 0.38,
+                'contact': isMobile ? 0.78 : 0.72
             };
 
             const target = offsets[sectionId];
@@ -36,7 +37,7 @@ export const Experience = () => {
         <Canvas shadows camera={{ position: [0, 0, 5], fov: 75 }}>
             <color attach="background" args={["#111"]} />
             <Suspense fallback={null}>
-                <ScrollControls pages={7} damping={0.1}>
+                <ScrollControls pages={9} damping={0.1}>
                     <NavBridge />
                     <Background />
                     <Scroll>
