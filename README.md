@@ -18,7 +18,7 @@ Welcome to the **Ultimate 3D Animation Portfolio**. This project isn't just a we
 > **Experience the Full Immersion**
 > The desktop view features an ultrawide split-layout with a reactive 3D avatar and dynamic lighting.
 > 
-> ![Desktop Mockup Placeholder](https://via.placeholder.com/1200x600/020205/b084ff?text=Desktop+Mockup+Unavailable)
+> ![Desktop View](src/components/assets/Desktop_view.png)
 
 ### 📱 Mobile Excellence (iPhone 15 Pro)
 > [!TIP]
@@ -26,7 +26,7 @@ Welcome to the **Ultimate 3D Animation Portfolio**. This project isn't just a we
 > Optimized specifically for the iPhone 15 Pro, ensuring every animation and interaction feels native.
 > 
 > <p align="center">
->   <img src="https://via.placeholder.com/400x800/020205/b084ff?text=iPhone+15+Pro+Mockup+Unavailable" width="300" />
+>   <img src="src/components/assets/mobile_view.png" width="300" />
 > </p>
 
 ---
