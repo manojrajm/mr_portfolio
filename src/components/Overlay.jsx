@@ -456,7 +456,7 @@ const AboutImage = ({ isMobile }) => {
                 transition: 'all 0.4s ease'
             }}>
                 <motion.img
-                    src="./src/components/assets/profile.png"
+                    src="/profile.png"
                     alt="ManojRaj"
                     animate={{
                         opacity: isHovered ? 1 : 0.3,
