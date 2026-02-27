@@ -7,16 +7,12 @@ import { Office } from "./sections/Office";
 import { Gallery } from "./sections/Gallery";
 import { Skills } from "./sections/Skills";
 import { Avatar } from "./Avatar";
+import { Physics } from "@react-three/rapier";
 
-const ScrollManager = ({ setScrollOffset }) => {
+// ScrollManager removed as state is no longer needed.
+
+const GlobalAvatar = () => {
     const scroll = useScroll();
-    useFrame(() => {
-        setScrollOffset(scroll.offset);
-    });
-    return null;
-}
-
-const GlobalAvatar = ({ scrollOffset }) => {
     const group = useRef();
     const { width } = useThree((state) => state.viewport);
     const isMobile = width < 5;
@@ -64,7 +60,7 @@ const GlobalAvatar = ({ scrollOffset }) => {
         ];
 
 
-        // Find current keyframe segment
+        const scrollOffset = scroll.offset;
         let startFrame = keyframes[0];
         let endFrame = keyframes[keyframes.length - 1];
 
@@ -121,36 +117,32 @@ const GlobalAvatar = ({ scrollOffset }) => {
 };
 
 export const World = () => {
-    const { width, height } = useThree((state) => state.viewport);
-    const [scrollOffset, setScrollOffset] = useState(0);
+    const { height } = useThree((state) => state.viewport);
 
     return (
         <>
-            {/* Section 1: Hero - Page 1 */}
-            <group position={[0, -height * 0.05, 0]}>
-                <Office scale={0.8} />
-            </group>
+            <Physics gravity={[0, -9.81, 0]}>
+                {/* Section 1: Hero - Page 1 */}
+                <group position={[0, -height * 0.05, 0]}>
+                    <Office scale={0.8} />
+                </group>
 
-            {/* Sections positioned relative to scroll pages for context, 
-                 but Avatar moves independently */}
+                {/* Sections positioned relative to scroll pages for context, 
+                    but Avatar moves independently */}
 
-            {/* Section 3: Skills - Page 3 */}
-            <group position={[0, -height * 2, 0]}>
-                <Skills />
-            </group>
+                {/* Section 3: Skills - Page 3 */}
+                <group position={[0, -height * 2, 0]}>
+                    <Skills />
+                </group>
 
-            {/* Section 4: Projects - Page 4 */}
-            <group position={[0, -height * 3, 0]}>
-                <Gallery />
-            </group>
+                {/* Section 4: Projects - Page 4 */}
+                <group position={[0, -height * 3, 0]}>
+                    <Gallery />
+                </group>
 
-            {/* Global Moving Character */}
-            <GlobalAvatar scrollOffset={scrollOffset} />
-
-            {/* Helper to sync scroll state */}
-            <Scroll>
-                <ScrollManager setScrollOffset={setScrollOffset} />
-            </Scroll>
+                {/* Global Moving Character */}
+                <GlobalAvatar />
+            </Physics>
         </>
     );
 };

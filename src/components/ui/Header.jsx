@@ -34,8 +34,11 @@ export const Header = () => {
             backdropFilter: 'blur(15px)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
         }}>
-            <div style={{ fontWeight: '900', fontSize: '1.4rem', color: '#fff', letterSpacing: '2px' }}>
-                MR<span style={{ color: 'var(--primary)' }}>.DEV</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                <img src="/logo.png" alt="Logo" style={{ height: '35px', width: 'auto' }} />
+                <div style={{ fontWeight: '900', fontSize: '1.4rem', color: '#fff', letterSpacing: '2px' }}>
+                    MR<span style={{ color: 'var(--primary)' }}>.DEV</span>
+                </div>
             </div>
 
             {/* Desktop Nav */}
@@ -114,9 +117,12 @@ export const Header = () => {
                         {navItems.map((item, i) => (
                             <motion.a
                                 key={item}
-                                initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-                                animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                                transition={{ delay: 0.2 + (i * 0.1), duration: 0.5 }}
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{
+                                    delay: 0.2 + (i * 0.1),
+                                    duration: 0.5
+                                }}
                                 onClick={() => handleNavClick(item)}
                                 style={{
                                     fontSize: 'clamp(2.5rem, 10vw, 4rem)',

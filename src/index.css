@@ -93,9 +93,159 @@ h1, h2, h3, h4 {
   pointer-events: none;
 }
 
+
 @media (max-width: 768px) {
   .section {
     padding: 2rem;
   }
+}
+
+/* KINETIC NEBULA SKILLS STYLES */
+.nebula-section-header {
+    position: absolute;
+    top: 5rem;
+    left: 5rem;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.nebula-title {
+    font-size: clamp(3rem, 8vw, 5rem);
+    font-weight: 900;
+    line-height: 0.9;
+    color: #fff;
+    letter-spacing: -2px;
+}
+
+.nebula-title span {
+    color: var(--primary);
+    text-shadow: 0 0 30px rgba(176, 132, 255, 0.5);
+}
+
+.nebula-description {
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+}
+
+.nebula-field {
+    width: 100%;
+    height: 80vh;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: crosshair;
+    margin-top: 2rem;
+}
+
+.nebula-lens {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(176, 132, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 5;
+    mix-blend-mode: screen;
+}
+
+.nebula-background-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 25vw;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.02);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.nebula-skill-wrapper {
+    position: absolute;
+    transform-origin: center;
+    z-index: 10;
+}
+
+.nebula-skill-tag {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 100px;
+    color: #fff;
+    white-space: nowrap;
+    transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.nebula-skill-tag.active {
+    background: rgba(176, 132, 255, 0.1);
+    border-color: rgba(176, 132, 255, 0.4);
+    box-shadow: 0 0 30px rgba(176, 132, 255, 0.2);
+}
+
+.nebula-icon-brand {
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.nebula-skill-tag.active .nebula-icon-brand {
+    transform: scale(1.2) rotate(5deg);
+}
+
+.nebula-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+@media (max-width: 768px) {
+    .nebula-section-header {
+        position: relative;
+        top: 0;
+        left: 0;
+        margin-bottom: 2rem;
+        padding: 0 1rem;
+    }
+    
+    .nebula-title {
+        font-size: 3rem;
+    }
+
+    .nebula-field {
+        height: 80vh;
+        border-radius: 20px;
+        margin: 2rem 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    .nebula-lens {
+        width: 180px;
+        height: 180px;
+    }
+
+    .nebula-skill-tag {
+        padding: 0.6rem 1.2rem;
+    }
+
+    .nebula-name {
+        font-size: 0.9rem;
+    }
 }
 

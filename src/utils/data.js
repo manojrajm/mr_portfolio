@@ -6,6 +6,8 @@ export const portfolioData = {
         email: "gauthamtamizha007@gmail.com",
         phone: "+91 7339059057",
         location: "Rajapalayam Virudhunagar, India",
+        profileImage: "https://images.weserv.nl/?url=github.com/manojrajm.png",
+        resume: "/Manoj_Raj_Resume.pdf",
         bio: "Hello, I am ManojRaj M a student from TamilNadu, Currently studing Information Technology at Anna University, Trichy. I am a self-taught Developer and I love to learn new things. Other than programming I love sports,development,and directions."
     },
 
@@ -37,7 +39,9 @@ export const portfolioData = {
         { name: "MongoDB", icon: "🍃" },
         { name: "FireBase", icon: "🔥" },
         { name: "Git", icon: "📦" },
-        { name: "NodeJS", icon: "🟢" }
+        { name: "NodeJS", icon: "🟢" },
+        { name: "Figma", icon: "🎨" },
+        { name: "Photoshop", icon: "📷" }
     ],
     projects: [
         {
@@ -93,14 +97,14 @@ export const portfolioData = {
             title: "Front Desk",
             description: "This project is a Hotel Booking Management System ",
             link: "#",
-            github: "#",
+            github: "https://github.com/manojrajm/frontdesk",
             image: "https://github.com/manojrajm/frontdesk/raw/main/public/Logo.png?auto=format&fit=crop&q=80&w=600"
         },
         {
             title: "FinSnap",
             description: "Finsnap is the billing software Fin- Finance , Snap - capture or record",
             link: "#",
-            github: "#",
+            github: "https://github.com/manojrajm/finsnap",
             image: "https://github.com/manojrajm/finsnap/raw/main/public/Fs.png?auto=format&fit=crop&q=80&w=600"
         }
     ]

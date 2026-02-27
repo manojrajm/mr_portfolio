@@ -1,9 +1,9 @@
 import { Scroll } from "@react-three/drei";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { portfolioData } from "../utils/data";
 import { Section } from "./Section";
 import { MagneticButton } from "./ui/MagneticButton";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 
 const StaggeredText = ({ text, className, style, delay = 0 }) => {
     const letters = Array.from(text);
@@ -78,6 +78,175 @@ const SkillBadge = ({ skill, icon }) => (
         <span style={{ fontWeight: '600', color: '#fff', fontSize: '1rem', letterSpacing: '0.5px' }}>{skill}</span>
     </div>
 );
+
+const getBrandIconClass = (name) => {
+    const map = {
+        'JavaScript': 'devicon-javascript-plain colored',
+        'ReactJs': 'devicon-react-original colored',
+        'Python': 'devicon-python-plain colored',
+        'NodeJS': 'devicon-nodejs-plain colored',
+        'TypeScript': 'devicon-typescript-plain colored',
+        'FireBase': 'devicon-firebase-plain colored',
+        'Java': 'devicon-java-plain colored',
+        'Bootstrap': 'devicon-bootstrap-plain colored',
+        'MySql': 'devicon-mysql-plain colored',
+        'PostgreSQL': 'devicon-postgresql-plain colored',
+        'MongoDB': 'devicon-mongodb-plain colored',
+        'ReactNative': 'devicon-react-original colored',
+        'HTML5': 'devicon-html5-plain colored',
+        'CSS3': 'devicon-css3-plain colored',
+        'Sass': 'devicon-sass-original colored',
+        'Tailwind': 'devicon-tailwindcss-plain colored',
+        'Git': 'devicon-git-plain colored',
+        'PHP': 'devicon-php-plain colored',
+        'Bash': 'devicon-bash-plain colored',
+        'Figma': 'devicon-figma-plain colored',
+        'Photoshop': 'devicon-photoshop-plain colored',
+        'Blender': 'devicon-blender-original colored',
+    };
+    return map[name] || 'devicon-javascript-plain';
+};
+
+
+const NebulaSkill = ({ skill, mouseX, mouseY, pos }) => {
+    const ref = useRef(null);
+    const center = useRef({ x: 0, y: 0 });
+
+    useEffect(() => {
+        const updateCenter = () => {
+            if (ref.current) {
+                const rect = ref.current.getBoundingClientRect();
+                center.current = {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top + rect.height / 2
+                };
+            }
+        };
+        // Small delay to ensure layout has settled
+        const timeoutId = setTimeout(updateCenter, 100);
+        window.addEventListener('resize', updateCenter);
+        return () => {
+            window.removeEventListener('resize', updateCenter);
+            clearTimeout(timeoutId);
+        };
+    }, [pos]);
+
+    // Proximity calculation using container-relative coordinates
+    const scale = useTransform([mouseX, mouseY], ([mX, mY]) => {
+        const dx = (mX || 0) - (pos.x * 0.01 * (window.innerWidth * 0.9)); // Approximate center
+        const dy = (mY || 0) - (pos.y * 0.01 * (window.innerHeight * 0.8));
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const radius = 250;
+        if (dist > radius || dist === 0) return 1;
+        return 1 + (1 - dist / radius) * 0.5;
+    });
+
+    const springScale = useSpring(scale, { stiffness: 200, damping: 25 });
+    const opacity = useTransform(springScale, [1, 1.5], [0.1, 0.6]); // Reduced opacity
+    const zIndex = useTransform(springScale, [1, 1.5], [10, 100]);
+
+    return (
+        <motion.div
+            ref={ref}
+            className="nebula-skill-wrapper"
+            style={{
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                scale: springScale,
+                opacity,
+                zIndex
+            }}
+        >
+            <div className="nebula-skill-tag">
+                <i className={`${getBrandIconClass(skill)} nebula-icon-brand`} />
+                <span className="nebula-name">{skill}</span>
+            </div>
+        </motion.div>
+    );
+};
+
+const SkillNebula = ({ isMobile }) => {
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+    const containerRef = useRef(null);
+
+    // Smooth lens position
+    const lensX = useSpring(mouseX, { stiffness: 100, damping: 30 });
+    const lensY = useSpring(mouseY, { stiffness: 100, damping: 30 });
+
+    const skillPositions = useMemo(() => {
+        const skillsCount = portfolioData.skills.length;
+        const columns = isMobile ? 3 : 5;
+        const rows = Math.ceil(skillsCount / columns);
+        const padding = isMobile ? 8 : 15; // Tighter padding on mobile
+
+        return portfolioData.skills.map((_, index) => {
+            const col = index % columns;
+            const row = Math.floor(index / columns);
+
+            // Refined hexagonal offset
+            const offset = (row % 2) * (40 / columns);
+
+            const x = padding + (col * (100 - 2 * padding) / (columns - 1)) + offset;
+            const y = padding + (row * (100 - 2 * padding) / (rows - 1));
+
+            return {
+                x: Math.min(x, 100 - padding),
+                y: Math.min(y, 100 - padding)
+            };
+        });
+    }, [isMobile]);
+
+    const handleMouseMove = (e) => {
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        mouseX.set(e.clientX - rect.left);
+        mouseY.set(e.clientY - rect.top);
+    };
+
+    const handleTouchMove = (e) => {
+        if (e.touches.length > 0 && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            mouseX.set(e.touches[0].clientX - rect.left);
+            mouseY.set(e.touches[0].clientY - rect.top);
+        }
+    };
+
+    return (
+        <div
+            ref={containerRef}
+            className="nebula-field"
+            onMouseMove={handleMouseMove}
+            onTouchMove={handleTouchMove}
+            onTouchStart={handleTouchMove}
+        >
+            <motion.div
+                className="nebula-lens"
+                style={{
+                    left: lensX,
+                    top: lensY,
+                    x: "-50%",
+                    y: "-50%",
+                    display: isMobile ? 'none' : 'block' // Hide lens glow on touch as it can be distracting
+                }}
+            />
+
+            <div className="nebula-background-text">
+                EXPERTISE
+            </div>
+
+            {portfolioData.skills.map((skill, index) => (
+                <NebulaSkill
+                    key={index}
+                    skill={skill.name}
+                    mouseX={mouseX}
+                    mouseY={mouseY}
+                    pos={skillPositions[index]}
+                />
+            ))}
+        </div>
+    );
+};
 
 const SocialCard = ({ icon, label, value, link, delay = 0 }) => (
     <motion.a
@@ -201,17 +370,155 @@ const LinkedInIcon = () => (
     </svg>
 );
 
+const AboutImage = ({ isMobile }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            animate={{
+                y: [0, -20, 0],
+            }}
+            transition={{
+                duration: 1,
+                y: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                }
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+            style={{
+                position: 'relative',
+                flex: '0 0 auto',
+                cursor: 'pointer'
+            }}
+        >
+            {/* Advanced Nebula Layers - Only visible on hover */}
+            <motion.div
+                animate={{
+                    opacity: isHovered ? [0.3, 0.6, 0.3] : 0,
+                    scale: isHovered ? [1, 1.2, 1] : 0.8,
+                    rotate: [0, 90, 180, 270, 360]
+                }}
+                transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    ease: "linear",
+                    opacity: { duration: 0.4 },
+                    scale: { duration: 0.4 }
+                }}
+                style={{
+                    position: 'absolute',
+                    inset: '-40px',
+                    background: 'conic-gradient(from 0deg, transparent, rgba(176, 132, 255, 0.4), transparent, rgba(0, 255, 255, 0.3), transparent)',
+                    borderRadius: '50%',
+                    zIndex: -1,
+                    filter: 'blur(30px)',
+                    pointerEvents: 'none'
+                }}
+            />
+            <motion.div
+                animate={{
+                    opacity: isHovered ? [0.4, 0.8, 0.4] : 0,
+                    scale: isHovered ? [0.9, 1.1, 0.9] : 0.7,
+                }}
+                transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    opacity: { duration: 0.4 },
+                    scale: { duration: 0.4 }
+                }}
+                style={{
+                    position: 'absolute',
+                    inset: '-20px',
+                    background: 'radial-gradient(circle, rgba(176, 132, 255, 0.5) 0%, rgba(126, 34, 206, 0) 70%)',
+                    borderRadius: '50%',
+                    zIndex: -1,
+                    filter: 'blur(15px)',
+                    pointerEvents: 'none'
+                }}
+            />
+
+            <div style={{
+                width: isMobile ? '250px' : '450px',
+                height: isMobile ? '250px' : '450px',
+                borderRadius: '40px',
+                border: 'none',
+                padding: '10px',
+                background: 'rgba(10, 10, 25, 0.3)',
+                boxShadow: isHovered ? '0 0 60px rgba(176, 132, 255, 0.4), inset 0 0 30px rgba(176, 132, 255, 0.2)' : 'none',
+                overflow: 'hidden',
+                position: 'relative',
+                transition: 'all 0.4s ease'
+            }}>
+                <motion.img
+                    src="./src/components/assets/profile.png"
+                    alt="ManojRaj"
+                    animate={{
+                        opacity: isHovered ? 1 : 0.3,
+                        scale: isHovered ? 1.05 : 1
+                    }}
+                    transition={{ duration: 0.4 }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: '30px'
+                    }}
+                />
+
+                {/* Enhanced Shimmer Effect - Only visible on hover */}
+                <motion.div
+                    animate={{
+                        left: isHovered ? ['-100%', '200%'] : '-100%',
+                        opacity: isHovered ? 1 : 0
+                    }}
+                    transition={{
+                        left: { duration: 2.5, repeat: Infinity, repeatDelay: 1, ease: "easeInOut" },
+                        opacity: { duration: 0.3 }
+                    }}
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        width: '100%',
+                        height: '100%',
+                        background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent)',
+                        transform: 'skewX(-25deg)',
+                        zIndex: 1,
+                        pointerEvents: 'none'
+                    }}
+                />
+            </div>
+        </motion.div>
+    );
+};
+
 export const Overlay = () => {
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+
+        let timeoutId;
+        const handleResize = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(checkMobile, 100);
+        };
+
         window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            clearTimeout(timeoutId);
+        };
     }, []);
 
     return (
-        <Scroll html style={{ width: '100%' }}>
+        <>
             {/* Global Styles for Animations */}
             <style>{`
                 @keyframes fadeInUp {
@@ -275,9 +582,10 @@ export const Overlay = () => {
                     width: '100%',
                     maxWidth: '100vw',
                     margin: '0',
-                    padding: isMobile ? '0 1rem' : '0 8%',
+                    padding: isMobile ? '2rem 1rem' : '0 8%',
                     zIndex: 10,
-                    height: '100vh',
+                    minHeight: '100vh',
+                    height: isMobile ? 'auto' : '100vh',
                     pointerEvents: 'none',
                     textAlign: isMobile ? 'center' : 'left'
                 }}>
@@ -302,7 +610,11 @@ export const Overlay = () => {
                                 fontFamily: "'Outfit', sans-serif",
                                 textTransform: 'uppercase'
                             }}>
-                                {portfolioData.personal.name}
+                                {portfolioData.personal.name.split("").map((char, i) => (
+                                    <span key={i} style={{ color: (char === "M" || char === "R") ? "#b084ff" : "inherit" }}>
+                                        {char}
+                                    </span>
+                                ))}
                             </h1>
                         </motion.div>
                     </div>
@@ -383,115 +695,181 @@ export const Overlay = () => {
 
                 <div style={{
                     position: 'relative',
-                    maxWidth: '700px',
-                    marginLeft: isMobile ? '0' : 'auto', // Right aligned text on desktop
-                    marginRight: isMobile ? '0' : '10%',
-                    textAlign: isMobile ? 'center' : 'left',
-                    zIndex: 10
+                    width: '100%',
+                    maxWidth: '1200px',
+                    margin: '0 auto',
+                    display: 'flex',
+                    flexDirection: isMobile ? 'column' : 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: isMobile ? '2rem' : '5rem',
+                    zIndex: 10,
+                    padding: isMobile ? '4rem 1rem' : '0 5%',
+                    minHeight: '100vh'
                 }}>
-                    {/* Header */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8 }}
-                    >
-                        <StaggeredText
-                            text="About Me"
-                            style={{
-                                color: '#b084ff',
-                                fontSize: '1rem',
-                                letterSpacing: '0.3em',
-                                fontWeight: '600',
-                                marginBottom: '1.5rem',
-                                textTransform: 'uppercase'
-                            }}
-                        />
+                    <AboutImage isMobile={isMobile} />
 
-                        <h2 style={{
-                            color: '#fff',
-                            fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
-                            lineHeight: '1.4',
-                            fontWeight: '600',
-                            marginBottom: '2rem'
-                        }}>
-                            I'm a creative developer & designer with a passion for blending <span style={{ color: '#b084ff' }}>technical expertise</span> with creative edge.
-                        </h2>
-                    </motion.div>
-
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        transition={{ delay: 0.3, duration: 1 }}
-                        style={{ lineHeight: '1.8', color: '#ccc', fontSize: '1.1rem', marginBottom: '3rem', maxWidth: '600px' }}
-                    >
-                        {portfolioData.personal.bio}
-                    </motion.p>
-
-                    {/* Socials Sidebar (Inline for scroll flow) */}
-                    {/* <div style={{ position: 'absolute', left: '-50vw', top: '20%', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                        <a href="https://github.com" target="_blank" style={{ color: '#fff', fontSize: '1.5rem', opacity: 0.7, transition: 'opacity 0.3s' }}>
-                            <span className="hover:opacity-100">GH</span>
-                        </a>
-                        <a href="https://linkedin.com" target="_blank" style={{ color: '#fff', fontSize: '1.5rem', opacity: 0.7, transition: 'opacity 0.3s' }}>
-                            <span className="hover:opacity-100">LI</span>
-                        </a>
-                        <a href="mailto:email@example.com" target="_blank" style={{ color: '#fff', fontSize: '1.5rem', opacity: 0.7, transition: 'opacity 0.3s' }}>
-                            <span className="hover:opacity-100">@</span>
-                        </a>
-                    </div> */}
-
-                    {/* Education Minimal List */}
-                    <div>
-                        {portfolioData.education.map((edu, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: 20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 + (i * 0.1) }}
+                    <div style={{
+                        maxWidth: '700px',
+                        textAlign: isMobile ? 'center' : 'left',
+                    }}>
+                        {/* Header */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <StaggeredText
+                                text="About Me"
                                 style={{
+                                    color: '#b084ff',
+                                    fontSize: '1rem',
+                                    letterSpacing: '0.3em',
+                                    fontWeight: '600',
                                     marginBottom: '1.5rem',
-                                    borderLeft: '2px solid #b084ff',
-                                    paddingLeft: '1rem'
+                                    textTransform: 'uppercase'
                                 }}
-                            >
-                                <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.2rem' }}>{edu.title}</div>
-                                <div style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '0.2rem' }}>{edu.institution} | {edu.period}</div>
-                            </motion.div>
-                        ))}
+                            />
+
+                            <h2 style={{
+                                color: '#fff',
+                                fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+                                lineHeight: '1.4',
+                                fontWeight: '600',
+                                marginBottom: '2rem'
+                            }}>
+                                I'm a creative developer & designer with a passion for blending <span style={{ color: '#b084ff' }}>technical expertise</span> with creative edge.
+                            </h2>
+                        </motion.div>
+
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 1 }}
+                            style={{ lineHeight: '1.8', color: '#ccc', fontSize: '1.1rem', marginBottom: '1.5rem', maxWidth: '600px' }}
+                        >
+                            {portfolioData.personal.bio}
+                        </motion.p>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            style={{ marginBottom: '2.5rem' }}
+                        >
+                            <MagneticButton onClick={() => {
+                                console.log("Opening resume:", portfolioData.personal.resume);
+                                window.open(portfolioData.personal.resume || '#', '_blank');
+                            }}>
+                                <motion.div
+                                    whileHover="hover"
+                                    initial="rest"
+                                    animate="rest"
+                                    style={{
+                                        padding: '0.8rem 2.2rem',
+                                        background: 'rgba(176, 132, 255, 0.05)',
+                                        backdropFilter: 'blur(10px)',
+                                        color: '#fff',
+                                        borderRadius: '12px',
+                                        fontWeight: '600',
+                                        fontSize: '1rem',
+                                        fontFamily: "'Outfit', sans-serif",
+                                        letterSpacing: '1px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.8rem',
+                                        cursor: 'pointer',
+                                        border: '1px solid rgba(176, 132, 255, 0.3)',
+                                        position: 'relative',
+                                        overflow: 'hidden',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    <motion.div
+                                        variants={{
+                                            hover: { opacity: 1, scale: 1.2 },
+                                            rest: { opacity: 0, scale: 0.8 }
+                                        }}
+                                        style={{
+                                            position: 'absolute',
+                                            inset: 0,
+                                            background: 'radial-gradient(circle at center, rgba(176, 132, 255, 0.2) 0%, transparent 70%)',
+                                            zIndex: 0,
+                                            pointerEvents: 'none'
+                                        }}
+                                    />
+
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'relative', zIndex: 1 }}>
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+
+                                    <span style={{ position: 'relative', zIndex: 1 }}>EXPLORE RESUME</span>
+
+                                    <motion.div
+                                        variants={{
+                                            hover: { x: '200%' },
+                                            rest: { x: '-100%' }
+                                        }}
+                                        transition={{ duration: 0.6, ease: "easeInOut" }}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '50%',
+                                            height: '100%',
+                                            background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent)',
+                                            transform: 'skewX(-20deg)',
+                                            zIndex: 2
+                                        }}
+                                    />
+                                </motion.div>
+                            </MagneticButton>
+                        </motion.div>
+
+                        {/* Education Minimal List */}
+                        <div style={{ textAlign: 'left' }}>
+                            {portfolioData.education.map((edu, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, x: 20 }}
+                                    whileInView={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.5 + (i * 0.1) }}
+                                    style={{
+                                        marginBottom: '1.5rem',
+                                        borderLeft: '2px solid #b084ff',
+                                        paddingLeft: '1rem'
+                                    }}
+                                >
+                                    <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.2rem' }}>{edu.title}</div>
+                                    <div style={{ color: '#aaa', fontSize: '0.9rem', marginTop: '0.2rem' }}>{edu.institution} | {edu.period}</div>
+                                </motion.div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </Section>
 
-            {/* 3) SKILLS */}
+            {/* 3) SKILLS - KINETIC NEBULA VERSION */}
             <Section opacity={1}>
                 <div id="skills" style={{ position: 'absolute', top: -100 }} />
-                <div style={{
-                    maxWidth: '900px',
-                    margin: isMobile ? '0 auto' : '0 0 0 5%',
-                    textAlign: isMobile ? 'center' : 'left',
-                    zIndex: 20,
-                    position: 'relative'
-                }}>
-                    <StaggeredText
-                        text="Technical Proficiency"
-                        style={{
-                            fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-                            marginBottom: '2.5rem',
-                            color: '#fff',
-                            justifyContent: isMobile ? 'center' : 'flex-start'
-                        }}
-                    />
-                    <div style={{
-                        display: 'flex',
-                        flexWrap: 'wrap',
-                        gap: '1.2rem',
-                        justifyContent: isMobile ? 'center' : 'flex-start'
-                    }}>
-                        {portfolioData.skills.map((s, i) => (
-                            <SkillBadge key={i} skill={s.name} icon={s.icon} />
-                        ))}
-                    </div>
+
+                <div className="nebula-section-header">
+                    <motion.h2
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="nebula-title"
+                    >
+                        THE SKILL<br /><span>SET</span>
+                    </motion.h2>
+                    <p className="nebula-description">Explore the field of expertise</p>
                 </div>
+
+                <SkillNebula isMobile={isMobile} />
             </Section>
 
             {/* 4) PROJECTS */}
@@ -743,15 +1121,14 @@ export const Overlay = () => {
                         </div>
 
                         {/* Back to Top Button */}
-                        <MagneticButton>
-                            <motion.button
-                                onClick={() => window.scrollToSection ? window.scrollToSection('home') : window.scrollTo({ top: 0, behavior: 'smooth' })}
+                        <MagneticButton onClick={() => window.scrollToSection ? window.scrollToSection('home') : window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0 }}
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 whileHover={{ scale: 1.1 }}
                                 style={{
-                                    background: 'var(--glass)',
-                                    border: '1px solid var(--glass-border)',
+                                    background: 'rgba(255, 255, 255, 0.1)',
+                                    border: '1px solid rgba(255, 255, 255, 0.1)',
                                     color: '#fff',
                                     padding: '1rem 2rem',
                                     borderRadius: '50px',
@@ -766,7 +1143,7 @@ export const Overlay = () => {
                                 }}
                             >
                                 <span style={{ fontSize: '1.2rem' }}>↑</span> BACK TO TOP
-                            </motion.button>
+                            </motion.div>
                         </MagneticButton>
                     </div>
 
@@ -827,6 +1204,6 @@ export const Overlay = () => {
                     100% { transform: translateX(-50%); }
                 }
             `}</style>
-        </Scroll>
+        </>
     );
 };

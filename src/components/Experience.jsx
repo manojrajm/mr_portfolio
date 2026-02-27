@@ -3,13 +3,30 @@ import { Canvas } from "@react-three/fiber";
 import { Overlay } from "./Overlay";
 import { World } from "./World";
 import { Background } from "./Background";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, Component } from "react";
+
+class ErrorBoundary extends Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+    static getDerivedStateFromError(error) {
+        return { hasError: true };
+    }
+    componentDidCatch(error, errorInfo) {
+        console.error("3D Scene Error:", error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) return this.props.fallback || null;
+        return this.props.children;
+    }
+}
 
 const NavBridge = () => {
     const scroll = useScroll();
 
     useEffect(() => {
-        window.scrollToSection = (sectionId) => {
+        const handler = (sectionId) => {
             const isMobile = window.innerWidth < 768;
             const offsets = {
                 'home': 0,
@@ -20,13 +37,16 @@ const NavBridge = () => {
             };
 
             const target = offsets[sectionId];
-            if (target !== undefined) {
+            if (target !== undefined && scroll.el) {
                 scroll.el.scrollTo({
                     top: target * (scroll.el.scrollHeight - scroll.el.clientHeight),
                     behavior: 'smooth'
                 });
             }
         };
+
+        window.scrollToSection = handler;
+        return () => { delete window.scrollToSection; };
     }, [scroll]);
 
     return null;
@@ -35,19 +55,20 @@ const NavBridge = () => {
 export const Experience = () => {
     return (
         <Canvas shadows camera={{ position: [0, 0, 5], fov: 75 }}>
-            <color attach="background" args={["#111"]} />
-            <Suspense fallback={null}>
-                <ScrollControls pages={9} damping={0.1}>
-                    <NavBridge />
-                    <Background />
-                    <Scroll>
-                        <World />
-                    </Scroll>
-                    <Scroll html style={{ width: '100%' }}>
-                        <Overlay />
-                    </Scroll>
-                </ScrollControls>
-            </Suspense>
+            <ScrollControls pages={9} damping={0.1}>
+                <NavBridge />
+                <Background />
+                <Scroll>
+                    <Suspense fallback={null}>
+                        <ErrorBoundary fallback={null}>
+                            <World />
+                        </ErrorBoundary>
+                    </Suspense>
+                </Scroll>
+                <Scroll html style={{ width: '100%' }}>
+                    <Overlay />
+                </Scroll>
+            </ScrollControls>
         </Canvas>
     );
 };

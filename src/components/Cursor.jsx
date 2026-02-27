@@ -56,7 +56,9 @@ export const Cursor = () => {
                 className="cursor"
                 variants={variants}
                 animate={isHovering ? "hover" : "default"}
-                transition={{ type: "spring", stiffness: 500, damping: 28 }}
+                transition={{
+                    default: { type: "spring", stiffness: 500, damping: 28 }
+                }}
                 style={{
                     position: "fixed",
                     top: 0,
